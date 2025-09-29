@@ -1,0 +1,9 @@
+{
+  "json.schemas": [
+    {
+      "fileMatch": ["/data/config.json", "data/config.json"],
+      "url": "./schemas/config.schema.json",
+      "description": "Schema for project config.json (wifi, mqtt, device)"
+    }
+  ]
+}

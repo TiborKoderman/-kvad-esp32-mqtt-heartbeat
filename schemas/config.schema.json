@@ -1,0 +1,23 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"$id": "https://example.com/schemas/config.schema.json",
+	"title": "Device Configuration Schema",
+	"description": "Top-level configuration for esp32. This schema expects to validate the JSON stored in data/config.json.",
+	"type": "object",
+	"properties": {
+		"uuid": {
+			"type": "string",
+			"format": "uuid"
+		},
+		"deviceName": { "type":"string", "minLength":1, "maxLength":32, "pattern":"^[A-Za-z0-9-]+$" },
+		"modules": {
+			"type": "object",
+			"properties": {
+				"wifi": { "$ref": "modules/wifi.schema.json" }
+			},
+			"additionalProperties": false
+		}
+	},
+	"additionalProperties": false
+}
+

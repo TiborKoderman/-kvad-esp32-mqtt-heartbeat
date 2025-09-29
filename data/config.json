@@ -1,0 +1,26 @@
+{
+    "uuid": "504b1696-2ad5-4109-ac28-5158965d6675",
+    "deviceName": "esp32s3_hb",
+
+    "capabilities": {
+        "network": {
+          
+        },
+        "mqtt": {
+            "broker": "172.16.1.21",
+            "port": 1883,
+            "topic": "device/504b1696-2ad5-4109-ac28-5158965d6675/hb",
+            "clientId": "esp32s3_hb",
+            "heartbeatInterval": 30000
+        },
+
+        "mdns": {
+            "serviceType": "_mqtt",
+            "protocol": "_tcp",
+            "port": 1883
+        }
+    },
+    "tags": {
+      
+    }
+}

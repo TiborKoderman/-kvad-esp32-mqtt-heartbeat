@@ -1,0 +1,285 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "WiFi Configuration",
+    "description": "Schema for WiFi configuration used by the esp32-mqtt-heartbeat project.",
+    "type": "object",
+    "properties": {
+        "enabled": { "type": "boolean",
+        "description": "Enable or disable the WiFi module.",
+        "default": true },
+        "hostname": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32,
+            "pattern": "^[A-Za-z0-9-]+$"
+        },
+        "country": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 3,
+            "description": "Regulatory domain hint (e.g. US, EU, JP)"
+        },
+        "txPowerDbm": { "type": "number", "minimum": 2, "maximum": 20 },
+        "sleep": {
+            "type": "string",
+            "enum": ["none", "modem", "light"],
+            "default": "none"
+        },
+        "sta": { "$ref": "#/definitions/STA" },
+        "ap": { "$ref": "#/definitions/AP" }
+    },
+    "allOf": [
+        {
+            "if": {
+                "properties": { "enabled": { "const": false } },
+                "required": ["enabled"]
+            },
+            "then": {
+                "properties": {
+                    "sta": { "properties": { "enabled": { "const": false } } },
+                    "ap": { "properties": { "enabled": { "const": false } } }
+                }
+            }
+        }
+    ],
+    "additionalProperties": false,
+    "definitions": {
+        "STA": {
+            "type": "object",
+            "properties": {
+                "enabled": { "type": "boolean", "default": true },
+                "ssid": { "type": "string", "minLength": 1, "maxLength": 32 },
+                "password": {
+                    "type": "string",
+                    "minLength": 0,
+                    "maxLength": 63
+                },
+                "auth": { "$ref": "#/definitions/auth" },
+                "pmf": { "$ref": "#/definitions/pmf" },
+                "bssidLock": { "type": "boolean", "default": false },
+                "bssid": {
+                    "type": "string",
+                    "pattern": "^[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5}$"
+                },
+                "ipv4": {
+                    "type": "object",
+                    "properties": {
+                        "dhcp": { "type": "boolean", "default": true },
+                        "address": { "$ref": "#/definitions/IPv4Addr" },
+                        "gateway": { "$ref": "#/definitions/IPv4Addr" },
+                        "netmask": {
+                            "$ref": "#/definitions/IPv4Addr",
+                            "default": "255.255.255.0"
+                        },
+                        "dns": {
+                            "type": "array",
+                            "items": { "$ref": "#/definitions/IPv4Addr" },
+                            "minItems": 1,
+                            "maxItems": 2,
+                            "uniqueItems": true
+                        }
+                    },
+                    "required": ["dhcp"],
+                    "allOf": [
+                        {
+                            "if": {
+                                "properties": { "dhcp": { "const": false } },
+                                "required": ["dhcp"]
+                            },
+                            "then": {
+                                "required": ["address", "gateway", "netmask"]
+                            }
+                        },
+                        {
+                            "if": {
+                                "properties": { "dhcp": { "const": true } },
+                                "required": ["dhcp"]
+                            },
+                            "then": {
+                                "not": {
+                                    "anyOf": [
+                                        { "required": ["address"] },
+                                        { "required": ["gateway"] },
+                                        { "required": ["netmask"] },
+                                        { "required": ["dns"] }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    "additionalProperties": false
+                },
+                "autoReconnect": { "type": "boolean", "default": true }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "properties": { "enabled": { "const": true } },
+                        "required": ["enabled"]
+                    },
+                    "then": { "required": ["ssid"] }
+                },
+                {
+                    "if": {
+                        "properties": { "auth": { "const": "open" } },
+                        "required": ["auth"]
+                    },
+                    "then": { "properties": { "password": { "maxLength": 0 } } }
+                },
+                {
+                    "if": {
+                        "properties": { "auth": { "const": "wpa3" } },
+                        "required": ["auth"]
+                    },
+                    "then": { "properties": { "pmf": { "const": "required" } } }
+                },
+                {
+                    "if": {
+                        "properties": { "auth": { "enum": ["wpa2", "wpa3"] } },
+                        "required": ["auth"]
+                    },
+                    "then": { "properties": { "password": { "minLength": 8 } } }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "bssidLock": { "const": true }
+                        },
+                        "required": ["bssidLock"]
+                    },
+                    "then": { "required": ["bssid"] }
+                }
+            ],
+            "additionalProperties": false
+        },
+        "AP": {
+            "type": "object",
+            "properties": {
+                "enabled": { "type": "boolean", "default": false },
+                "ssid": { "type": "string", "minLength": 1, "maxLength": 32 },
+                "password": {
+                    "type": "string",
+                    "minLength": 8,
+                    "maxLength": 63
+                },
+                "channel": {
+                    "oneOf": [
+                        { "type": "integer", "minimum": 1, "maximum": 13 },
+                        { "type": "string", "const": "auto" }
+                    ],
+                    "default": "auto"
+                },
+                "hidden": { "type": "boolean", "default": false },
+                "maxClients": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10,
+                    "default": 4
+                },
+                "auth": { "$ref": "#/definitions/auth" },
+                "pmf": {
+                    "type": "string",
+                    "enum": ["disabled", "optional", "required"],
+                    "default": "optional"
+                },
+                "ipv4": {
+                    "type": "object",
+                    "properties": {
+                        "address": {
+                            "$ref": "#/definitions/IPv4Addr",
+                            "default": "192.168.4.1"
+                        },
+                        "gateway": {
+                            "$ref": "#/definitions/IPv4Addr",
+                            "default": "192.168.4.1"
+                        },
+                        "netmask": {
+                            "$ref": "#/definitions/IPv4Addr",
+                            "default": "255.255.255.0"
+                        },
+                        "dhcp": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean",
+                                    "default": true
+                                },
+                                "start": {
+                                    "$ref": "#/definitions/IPv4Addr",
+                                    "default": "192.168.4.2"
+                                },
+                                "end": {
+                                    "$ref": "#/definitions/IPv4Addr",
+                                    "default": "192.168.4.100"
+                                },
+                                "netmask": {
+                                    "$ref": "#/definitions/IPv4Addr",
+                                    "default": "255.255.255.0"
+                                }
+                            },
+                            "required": ["enabled"],
+                            "additionalProperties": false
+                        }
+                    },
+                    "required": ["address", "gateway", "netmask", "dhcp"],
+                    "additionalProperties": false
+                },
+                "policy": {
+                    "type": "string",
+                    "enum": ["always-on", "fallback", "off"],
+                    "default": "off",
+                    "description": "Access Point policy: always-on, fallback (enabled when no STA connection), or off"
+                }
+            },
+            "required": ["ssid"],
+            "allOf": [
+                {
+                    "if": {
+                        "properties": { "auth": { "const": "open" } },
+                        "required": ["auth"]
+                    },
+                    "then": {
+                        "not": { "required": ["password"] },
+                        "properties": { "password": { "maxLength": 0 } }
+                    },
+                    "else": { "required": ["password"] }
+                },
+                {
+                    "if": {
+                        "properties": { "policy": { "const": "off" } },
+                        "required": ["policy"]
+                    },
+                    "then": { "properties": { "enabled": { "const": false } } }
+                },
+                {
+                    "if": {
+                        "properties": { "enabled": { "const": false } },
+                        "required": ["enabled"]
+                    },
+                    "then": {
+                        "properties": { "policy": { "const": "off" } }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": { "auth": { "const": "wpa3" } },
+                        "required": ["auth"]
+                    },
+                    "then": { "properties": { "pmf": { "const": "required" } } }
+                }
+            ],
+            "additionalProperties": false
+        },
+        "auth": {
+            "type": "string",
+            "enum": ["open", "wpa2", "wpa3"],
+            "default": "wpa2"
+        },
+        "pmf": {
+            "type": "string",
+            "enum": ["disabled", "optional", "required"],
+            "default": "optional"
+        },
+        "IPv4Addr": { "type": "string", "format": "ipv4" }
+    }
+}
