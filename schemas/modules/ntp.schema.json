@@ -1,0 +1,38 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NTP Configuration",
+  "description": "Minimal schema for NTP time synchronization on ESP32.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "description": "Enable or disable NTP synchronization.",
+      "default": true
+    },
+    "servers": {
+      "type": "array",
+      "description": "List of NTP servers to query, in priority order. Defaults to pool.ntp.org if empty.",
+      "items": {
+        "type": "string",
+        "format": "hostname"
+      },
+      "minItems": 0,
+      "maxItems": 3,
+      "default": []
+    },
+    "timezone": {
+      "type": "string",
+      "description": "Timezone in POSIX TZ format (e.g. 'UTC', 'CET-1CEST,M3.5.0,M10.5.0/3').",
+      "default": "UTC"
+    },
+    "syncInterval": {
+      "type": "integer",
+      "description": "Sync interval in seconds.",
+      "minimum": 60,
+      "maximum": 86400,
+      "default": 3600
+    }
+  },
+  "required": ["enabled"]
+}

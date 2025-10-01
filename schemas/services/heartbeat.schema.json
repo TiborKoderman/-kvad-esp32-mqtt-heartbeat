@@ -1,0 +1,199 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Heartbeat Configuration",
+  "description": "Controls how the device emits periodic heartbeats and declares server-side status rules.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "description": "Master switch for the heartbeat module.",
+      "default": true
+    },
+    "transport": {
+      "type": "string",
+      "description": "Where to send heartbeats.",
+      "enum": ["mqtt", "http"],
+      "default": "mqtt"
+    },
+    "intervalSec": {
+      "type": "integer",
+      "description": "Target heartbeat interval (seconds).",
+      "minimum": 1,
+      "maximum": 86400,
+      "default": 60
+    },
+    "jitterSec": {
+      "type": "integer",
+      "description": "Optional randomization added to interval to avoid thundering herd.",
+      "minimum": 0,
+      "maximum": 600,
+      "default": 0
+    },
+    "payload": {
+      "type": "object",
+      "description": "Optional extra key/values merged into the heartbeat payload. Server may override/augment.",
+      "additionalProperties": {
+        "type": ["string", "number", "boolean", "null"]
+      },
+      "default": {}
+    },
+    "mqtt": {
+      "type": "object",
+      "description": "MQTT transport settings.",
+      "additionalProperties": false,
+      "properties": {
+        "topic": {
+          "type": "string",
+          "description": "Absolute topic to publish heartbeats to. Placeholders allowed: {deviceId}, {clientId}, {mac}, {deviceName}.",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^[^/#+]+(?:/[^/#+]+)*$"
+        },
+        "qos": {
+          "type": "integer",
+          "description": "QoS level (0 or 1 for most clients).",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0
+        },
+        "retain": {
+          "type": "boolean",
+          "description": "Publish as retained. Useful if the server wants the latest heartbeat on subscribe.",
+          "default": false
+        }
+      }
+    },
+    "http": {
+      "type": "object",
+      "description": "HTTP POST transport settings.",
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "Endpoint to POST the heartbeat JSON to (http:// or https://).",
+          "format": "uri"
+        },
+        "headers": {
+          "type": "object",
+          "description": "Optional extra HTTP headers.",
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "default": {}
+        },
+        "timeoutSec": {
+          "type": "integer",
+          "description": "HTTP request timeout in seconds.",
+          "minimum": 1,
+          "maximum": 60,
+          "default": 10
+        },
+        "retries": {
+          "type": "integer",
+          "description": "Per-heartbeat retry attempts on failure.",
+          "minimum": 0,
+          "maximum": 10,
+          "default": 2
+        }
+      }
+    },
+    "statusPolicy": {
+      "type": "object",
+      "description": "Server-side rules for interpreting device health from last heartbeat(s). Device sends; server evaluates.",
+      "additionalProperties": false,
+      "properties": {
+        "online": {
+          "type": "object",
+          "description": "Heartbeat freshness window considered 'Online'.",
+          "additionalProperties": false,
+          "properties": {
+            "maxAgeSec": {
+              "type": "integer",
+              "description": "If lastSeen <= maxAgeSec → Online.",
+              "minimum": 1,
+              "maximum": 604800,
+              "default": 120
+            }
+          }
+        },
+        "stale": {
+          "type": "object",
+          "description": "After Online window but still recently seen.",
+          "additionalProperties": false,
+          "properties": {
+            "maxAgeSec": {
+              "type": "integer",
+              "description": "If Online < lastSeen <= Stale → Stale.",
+              "minimum": 2,
+              "maximum": 1209600,
+              "default": 900
+            }
+          }
+        },
+        "offline": {
+          "type": "object",
+          "description": "No heartbeat for a longer period.",
+          "additionalProperties": false,
+          "properties": {
+            "maxAgeSec": {
+              "type": "integer",
+              "description": "If Stale < lastSeen <= Offline → Offline; beyond that → Unreachable unless grace applies.",
+              "minimum": 3,
+              "maximum": 2419200,
+              "default": 3600
+            }
+          }
+        },
+        "intermittent": {
+          "type": "object",
+          "description": "Quality gate over a recent time window.",
+          "additionalProperties": false,
+          "properties": {
+            "windowSec": {
+              "type": "integer",
+              "description": "Lookback window to judge delivery quality.",
+              "minimum": 30,
+              "maximum": 86400,
+              "default": 600
+            },
+            "minSuccessRate": {
+              "type": "number",
+              "description": "Minimum fraction (0..1) of expected heartbeats that must arrive in window; otherwise mark Intermittent (overrides Online/Stale).",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.7
+            }
+          }
+        },
+        "unreachable": {
+          "type": "object",
+          "description": "No contact for a very long time or never connected.",
+          "additionalProperties": false,
+          "properties": {
+            "graceSecAfterBoot": {
+              "type": "integer",
+              "description": "Grace period after first sighting/registration before declaring Unreachable.",
+              "minimum": 0,
+              "maximum": 86400,
+              "default": 0
+            }
+          }
+        }
+      },
+      "$comment": "Enforce ordering in code: online.maxAgeSec < stale.maxAgeSec < offline.maxAgeSec"
+    }
+  },
+  "required": ["enabled", "transport", "intervalSec"],
+  "allOf": [
+    {
+      "if": { "properties": { "transport": { "const": "mqtt" } }, "required": ["transport"] },
+      "then": { "required": ["mqtt"], "properties": { "mqtt": { "required": ["topic"] } } }
+    },
+    {
+      "if": { "properties": { "transport": { "const": "http" } }, "required": ["transport"] },
+      "then": { "required": ["http"], "properties": { "http": { "required": ["url"] } } }
+    }
+  ]
+}

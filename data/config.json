@@ -2,25 +2,36 @@
     "uuid": "504b1696-2ad5-4109-ac28-5158965d6675",
     "deviceName": "esp32s3_hb",
 
-    "capabilities": {
-        "network": {
-          
+    "modules": {
+        "wifi": {
+            "enabled": true,
+            "sta": {
+                "ssid": "YourSSID",
+                "password": "YourPassword"
+            }
         },
         "mqtt": {
-            "broker": "172.16.1.21",
-            "port": 1883,
-            "topic": "device/504b1696-2ad5-4109-ac28-5158965d6675/hb",
-            "clientId": "esp32s3_hb",
-            "heartbeatInterval": 30000
-        },
-
-        "mdns": {
-            "serviceType": "_mqtt",
-            "protocol": "_tcp",
-            "port": 1883
+            "enabled": true,
+            "host": "mqtt.example.com"
         }
     },
-    "tags": {
-      
+
+    "services": {
+        "heartbeat": {
+            "enabled": true,
+            "transport": {
+                "mqtt": {
+                    "topic": "device/{deviceId}/heartbeat",
+                    "qos": 1,
+                    "retain": false
+                }
+            },
+            "intervalSec": 60,
+            "jitterSec": 10,
+            "payload": {
+                "location": "office",
+                "deviceType": "sensor"
+            }
+        }
     }
 }

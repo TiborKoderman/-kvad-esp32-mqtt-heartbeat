@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Bluetooth (BLE) Configuration - Minimal (Service Data only)",
+  "description": "Minimal BLE config for onboarding and simple filtering via Service UUID + Service Data tag.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "description": "Enable or disable BLE.",
+      "default": false
+    },
+    "deviceName": {
+      "type": "string",
+      "description": "GAP name shown to scanners.",
+      "minLength": 1,
+      "maxLength": 26,
+      "default": "esp32-device"
+    },
+    "serviceUuid": {
+      "type": "string",
+      "description": "Fixed product Service UUID used for discovery (do NOT vary per device).",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+      "default": "12345678-1234-5678-1234-56789abcdef0"
+    },
+    "characteristicUuid": {
+      "type": "string",
+      "description": "Fixed characteristic UUID for simple read/write/notify.",
+      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+      "default": "abcdefab-1234-5678-1234-56789abcdef0"
+    },
+    "advertising": {
+      "type": "object",
+      "description": "Minimal advertising controls with Service Data metadata.",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable advertising (discoverable).",
+          "default": true
+        },
+        "nameInAdv": {
+          "type": "boolean",
+          "description": "Include deviceName in advertisement/scan response if space permits.",
+          "default": true
+        },
+        "intervalMs": {
+          "type": "integer",
+          "description": "Advertising interval in milliseconds.",
+          "minimum": 20,
+          "maximum": 10240,
+          "default": 200
+        },
+        "serviceData": {
+          "type": "object",
+          "description": "Optional small tag in Service Data so the app can filter matches client-side.",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Include Service Data in advertising.",
+              "default": false
+            },
+            "tag": {
+              "type": "string",
+              "description": "Short ASCII tag your app recognizes, e.g. 'myIotDevice'.",
+              "minLength": 1,
+              "maxLength": 16
+            },
+            "includeDeviceUuid": {
+              "type": "string",
+              "description": "Include device UUID in Service Data (helps identify before connecting).",
+              "enum": ["none", "short", "full"],
+              "default": "short"
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": ["enabled"]
+}

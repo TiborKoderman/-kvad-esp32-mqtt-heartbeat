@@ -4,24 +4,33 @@
     "description": "Schema for WiFi configuration used by the esp32-mqtt-heartbeat project.",
     "type": "object",
     "properties": {
-        "enabled": { "type": "boolean",
-        "description": "Enable or disable the WiFi module.",
-        "default": true },
+        "enabled": {
+            "type": "boolean",
+            "description": "Master switch for the Wi-Fi module. If false, both STA and AP are forced off.",
+            "default": true
+        },
         "hostname": {
             "type": "string",
+            "description": "Hostname used for DHCP/mDNS where supported. Allowed: letters, digits, hyphen.",
             "minLength": 1,
             "maxLength": 32,
             "pattern": "^[A-Za-z0-9-]+$"
         },
         "country": {
             "type": "string",
+            "description": "Regulatory domain hint (e.g. US, EU, JP). Used to constrain channels/Tx power.",
             "minLength": 2,
-            "maxLength": 3,
-            "description": "Regulatory domain hint (e.g. US, EU, JP)"
+            "maxLength": 3
         },
-        "txPowerDbm": { "type": "number", "minimum": 2, "maximum": 20 },
+        "txPowerDbm": {
+            "type": "number",
+            "description": "Target Wi-Fi transmit power in dBm. Will be clamped to hardware/region limits.",
+            "minimum": 2,
+            "maximum": 20
+        },
         "sleep": {
             "type": "string",
+            "description": "Wi-Fi power save mode. 'none' = max performance; 'modem/light' reduce power at cost of latency.",
             "enum": ["none", "modem", "light"],
             "default": "none"
         },
@@ -46,33 +55,68 @@
     "definitions": {
         "STA": {
             "type": "object",
+            "description": "Station (client) settings: the ESP32 joins an existing Wi-Fi network.",
             "properties": {
-                "enabled": { "type": "boolean", "default": true },
-                "ssid": { "type": "string", "minLength": 1, "maxLength": 32 },
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Enable station mode (join an external AP).",
+                    "default": true
+                },
+                "ssid": {
+                    "type": "string",
+                    "description": "Target network SSID to join.",
+                    "minLength": 1,
+                    "maxLength": 32
+                },
                 "password": {
                     "type": "string",
+                    "description": "Network passphrase. Ignored/forbidden when auth='open'. For WPA2/WPA3 must be ≥ 8 chars.",
                     "minLength": 0,
                     "maxLength": 63
                 },
-                "auth": { "$ref": "#/definitions/auth" },
-                "pmf": { "$ref": "#/definitions/pmf" },
-                "bssidLock": { "type": "boolean", "default": false },
+                "auth": {
+                    "$ref": "#/definitions/auth",
+                    "description": "Security type to use when connecting."
+                },
+                "pmf": {
+                    "$ref": "#/definitions/pmf",
+                    "description": "Protected Management Frames policy (802.11w). Required for WPA3."
+                },
+                "bssidLock": {
+                    "type": "boolean",
+                    "description": "If true, connect only to the specified BSSID (locks to a specific AP/MAC).",
+                    "default": false
+                },
                 "bssid": {
                     "type": "string",
+                    "description": "Target AP BSSID (MAC) when bssidLock=true. Format: XX:XX:XX:XX:XX:XX.",
                     "pattern": "^[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5}$"
                 },
                 "ipv4": {
                     "type": "object",
+                    "description": "IPv4 configuration for the STA interface.",
                     "properties": {
-                        "dhcp": { "type": "boolean", "default": true },
-                        "address": { "$ref": "#/definitions/IPv4Addr" },
-                        "gateway": { "$ref": "#/definitions/IPv4Addr" },
+                        "dhcp": {
+                            "type": "boolean",
+                            "description": "Use DHCP for IPv4 assignment if true; otherwise static configuration is required.",
+                            "default": true
+                        },
+                        "address": {
+                            "$ref": "#/definitions/IPv4Addr",
+                            "description": "Static IPv4 address for the STA interface (requires dhcp=false)."
+                        },
+                        "gateway": {
+                            "$ref": "#/definitions/IPv4Addr",
+                            "description": "Default gateway when using static IP (requires dhcp=false)."
+                        },
                         "netmask": {
                             "$ref": "#/definitions/IPv4Addr",
+                            "description": "Subnet mask for static IP (requires dhcp=false).",
                             "default": "255.255.255.0"
                         },
                         "dns": {
                             "type": "array",
+                            "description": "Optional DNS servers for static IP. Provide 1–2 unique IPv4 addresses.",
                             "items": { "$ref": "#/definitions/IPv4Addr" },
                             "minItems": 1,
                             "maxItems": 2,
@@ -109,7 +153,11 @@
                     ],
                     "additionalProperties": false
                 },
-                "autoReconnect": { "type": "boolean", "default": true }
+                "autoReconnect": {
+                    "type": "boolean",
+                    "description": "Automatically reconnect the STA if it disconnects.",
+                    "default": true
+                }
             },
             "allOf": [
                 {
@@ -142,9 +190,7 @@
                 },
                 {
                     "if": {
-                        "properties": {
-                            "bssidLock": { "const": true }
-                        },
+                        "properties": { "bssidLock": { "const": true } },
                         "required": ["bssidLock"]
                     },
                     "then": { "required": ["bssid"] }
@@ -152,13 +198,25 @@
             ],
             "additionalProperties": false
         },
+
         "AP": {
             "type": "object",
+            "description": "Access Point (SoftAP) settings: the ESP32 creates a Wi-Fi network.",
             "properties": {
-                "enabled": { "type": "boolean", "default": false },
-                "ssid": { "type": "string", "minLength": 1, "maxLength": 32 },
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Enable SoftAP interface.",
+                    "default": false
+                },
+                "ssid": {
+                    "type": "string",
+                    "description": "SSID (network name) broadcast by the SoftAP.",
+                    "minLength": 1,
+                    "maxLength": 32
+                },
                 "password": {
                     "type": "string",
+                    "description": "AP passphrase for WPA2/WPA3 (8–63 chars). Omit when auth='open'.",
                     "minLength": 8,
                     "maxLength": 63
                 },
@@ -167,53 +225,72 @@
                         { "type": "integer", "minimum": 1, "maximum": 13 },
                         { "type": "string", "const": "auto" }
                     ],
+                    "description": "Radio channel. 'auto' lets firmware choose; in AP+STA the AP follows the STA channel.",
                     "default": "auto"
                 },
-                "hidden": { "type": "boolean", "default": false },
+                "hidden": {
+                    "type": "boolean",
+                    "description": "If true, do not include SSID in beacons (network is not listed by scanners).",
+                    "default": false
+                },
                 "maxClients": {
                     "type": "integer",
+                    "description": "Maximum simultaneous SoftAP clients (ESP32 supports up to ~10).",
                     "minimum": 1,
                     "maximum": 10,
                     "default": 4
                 },
-                "auth": { "$ref": "#/definitions/auth" },
+                "auth": {
+                    "$ref": "#/definitions/auth",
+                    "description": "Security mode for the SoftAP."
+                },
                 "pmf": {
                     "type": "string",
+                    "description": "Protected Management Frames policy advertised by the SoftAP. Required when auth='wpa3'.",
                     "enum": ["disabled", "optional", "required"],
                     "default": "optional"
                 },
                 "ipv4": {
                     "type": "object",
+                    "description": "IPv4 configuration for the AP interface and its DHCP server.",
                     "properties": {
                         "address": {
                             "$ref": "#/definitions/IPv4Addr",
+                            "description": "SoftAP interface IPv4 address (usually the gateway for clients).",
                             "default": "192.168.4.1"
                         },
                         "gateway": {
                             "$ref": "#/definitions/IPv4Addr",
+                            "description": "Gateway advertised to AP clients (should equal the AP address).",
                             "default": "192.168.4.1"
                         },
                         "netmask": {
                             "$ref": "#/definitions/IPv4Addr",
+                            "description": "Subnet mask for the AP network.",
                             "default": "255.255.255.0"
                         },
                         "dhcp": {
                             "type": "object",
+                            "description": "DHCP server configuration for AP clients.",
                             "properties": {
                                 "enabled": {
                                     "type": "boolean",
+                                    "description": "Enable the DHCP server on the AP network.",
                                     "default": true
                                 },
                                 "start": {
                                     "$ref": "#/definitions/IPv4Addr",
+                                    "description": "Start of DHCP pool (must be within the AP subnet).",
                                     "default": "192.168.4.2"
                                 },
                                 "end": {
                                     "$ref": "#/definitions/IPv4Addr",
+                                    "description": "End of DHCP pool (must be within the AP subnet and ≥ start).",
                                     "default": "192.168.4.100"
                                 },
                                 "netmask": {
                                     "$ref": "#/definitions/IPv4Addr",
+                                    "description": "Subnet mask handed out via DHCP (should match AP netmask).",
                                     "default": "255.255.255.0"
                                 }
                             },
@@ -226,9 +303,9 @@
                 },
                 "policy": {
                     "type": "string",
+                    "description": "When to run the AP: 'off' never starts it, 'fallback' only when STA is down, 'always-on' keeps AP up.",
                     "enum": ["always-on", "fallback", "off"],
-                    "default": "off",
-                    "description": "Access Point policy: always-on, fallback (enabled when no STA connection), or off"
+                    "default": "off"
                 }
             },
             "required": ["ssid"],
@@ -256,9 +333,7 @@
                         "properties": { "enabled": { "const": false } },
                         "required": ["enabled"]
                     },
-                    "then": {
-                        "properties": { "policy": { "const": "off" } }
-                    }
+                    "then": { "properties": { "policy": { "const": "off" } } }
                 },
                 {
                     "if": {
@@ -270,16 +345,25 @@
             ],
             "additionalProperties": false
         },
+
         "auth": {
             "type": "string",
+            "description": "Wi-Fi security mode. 'open' has no passphrase; 'wpa2' (PSK) is standard; 'wpa3' (SAE) is newer and requires PMF.",
             "enum": ["open", "wpa2", "wpa3"],
             "default": "wpa2"
         },
+
         "pmf": {
             "type": "string",
+            "description": "Protected Management Frames (802.11w): 'disabled' legacy, 'optional' try if available, 'required' enforce.",
             "enum": ["disabled", "optional", "required"],
             "default": "optional"
         },
-        "IPv4Addr": { "type": "string", "format": "ipv4" }
+
+        "IPv4Addr": {
+            "type": "string",
+            "description": "IPv4 address in dotted-quad notation (e.g., 192.168.1.10).",
+            "format": "ipv4"
+        }
     }
 }

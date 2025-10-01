@@ -1,0 +1,51 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://example.com/schemas/tag.schema.json",
+    "title": "Tag declaration",
+    "description": "Schema for defining a tag with id, type, and optional metadata.",
+    "type": "object",
+    "properties": {
+        "enabled": {
+            "type": "boolean",
+            "description": "Enable or disable this tag.",
+            "default": true
+        },
+        "io": {
+            "type": "string",
+            "description": "I/O direction for this tag.",
+            "enum": ["output", "input", "both"],
+            "default": "output"
+        },
+        "unit": {
+            "type": "string",
+            "description": "Optional unit of measurement for the tag's value.",
+            "minLength": 1,
+            "maxLength": 16
+        },
+        "valueType": {
+            "type": "string",
+            "description": "The data type of the tag's value.",
+            "enum": [
+                "f64",
+                "i64",
+                "enum",
+                "boolean",
+                "string",
+                "json",
+                "decimal",
+                "binary"
+            ],
+            "default": "instant"
+        },
+        "source": {
+            "type": "object",
+            "description": "Optional source identifier for the tag.",
+            "properties": {
+                "oneOf": {
+                    "gpio": { "$ref": "modules/gpio.schema.json" }
+                }
+            }
+        }
+    },
+    "required": ["id", "type"]
+}

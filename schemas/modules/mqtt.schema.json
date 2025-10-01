@@ -1,13 +1,333 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "WiFi Configuration",
-    "description": "Schema for MQTT configuration used by the esp32-mqtt-heartbeat project.",
-    "type": "object",
-    "properties": {
-      "enabled": {
-        "type": "boolean",
-        "description": "Enable or disable the MQTT module.",
-        "default": true
-      },
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MQTT Configuration",
+  "description": "MQTT client settings for ESP32.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "description": "Master switch for the MQTT client.",
+      "default": false
+    },
+
+    "host": {
+      "type": "string",
+      "description": "MQTT broker hostname or IPv4/IPv6 address."
+    },
+
+    "port": {
+      "type": "integer",
+      "description": "Broker port. Defaults depend on transport and TLS: TCP 1883/8883, WS 80/443.",
+      "minimum": 1,
+      "maximum": 65535
+    },
+
+    "transport": {
+      "type": "string",
+      "description": "Underlying transport.",
+      "enum": ["tcp", "ws"],
+      "default": "tcp"
+    },
+
+    "version": {
+      "type": "string",
+      "description": "MQTT protocol version.",
+      "enum": ["v3", "v5"],
+      "default": "v3"
+    },
+
+    "clientId": {
+      "type": "string",
+      "description": "Client identifier sent in CONNECT. If empty/missing, firmware should default to the device UUID.",
+      "minLength": 0,
+      "maxLength": 64,
+      "pattern": "^[A-Za-z0-9._-]*$"
+    },
+
+    "cleanSession": {
+      "type": "boolean",
+      "description": "Start a clean session (drop previous broker session state).",
+      "default": true
+    },
+
+    "keepAliveSec": {
+      "type": "integer",
+      "description": "Keep-alive interval in seconds.",
+      "minimum": 10,
+      "maximum": 65535,
+      "default": 60
+    },
+
+    "auth": {
+      "type": "object",
+      "description": "Authentication settings.",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "description": "Authentication mode.",
+          "enum": ["none", "basic"],
+          "default": "none"
+        },
+        "username": {
+          "type": "string",
+          "description": "Username for basic auth.",
+          "default": ""
+        },
+        "password": {
+          "type": "string",
+          "description": "Password for basic auth."
+        }
+      }
+    },
+
+    "baseTopic": {
+      "type": "string",
+      "description": "Base topic prefix for publishes, without trailing slash. Supports placeholders: {mac}, {deviceName}, {deviceId}, {clientId}. Example: 'devices/{deviceId}/status'.",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[^/#+]+(?:/[^/#+]+)*$"
+    },
+
+    "publish": {
+      "type": "object",
+      "description": "Default publish behavior.",
+      "additionalProperties": false,
+      "properties": {
+        "qos": {
+          "type": "integer",
+          "description": "Default QoS for publishes (0 or 1; set 2 only if your stack supports it).",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0
+        },
+        "retain": {
+          "type": "boolean",
+          "description": "Default retain flag.",
+          "default": false
+        },
+        "rateLimitPerSec": {
+          "type": "number",
+          "description": "Optional rate limit for outgoing publishes (messages per second). 0 disables.",
+          "minimum": 0,
+          "default": 0
+        }
+      }
+    },
+
+    "subscribe": {
+      "type": "object",
+      "description": "Default subscription behavior.",
+      "additionalProperties": false,
+      "properties": {
+        "qos": {
+          "type": "integer",
+          "description": "Default QoS for subscriptions (0 or 1).",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0
+        }
+      }
+    },
+
+    "will": {
+      "type": "object",
+      "description": "Last Will & Testament (sent by broker if client disconnects ungracefully).",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable LWT.",
+          "default": false
+        },
+        "topic": {
+          "type": "string",
+          "description": "LWT topic (absolute).",
+          "minLength": 1,
+          "maxLength": 256,
+          "pattern": "^[^/#+]+(?:/[^/#+]+)*$"
+        },
+        "payload": {
+          "type": "string",
+          "description": "LWT payload string.",
+          "maxLength": 512
+        },
+        "qos": {
+          "type": "integer",
+          "description": "LWT QoS (0 or 1).",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0
+        },
+        "retain": {
+          "type": "boolean",
+          "description": "Retain the LWT message.",
+          "default": true
+        }
+      }
+    },
+
+    "reconnect": {
+      "type": "object",
+      "description": "Reconnect/backoff policy (implemented by application).",
+      "additionalProperties": false,
+      "properties": {
+        "initialBackoffMs": {
+          "type": "integer",
+          "description": "Initial retry backoff (ms).",
+          "minimum": 100,
+          "maximum": 60000,
+          "default": 1000
+        },
+        "maxBackoffMs": {
+          "type": "integer",
+          "description": "Maximum retry backoff (ms).",
+          "minimum": 1000,
+          "maximum": 600000,
+          "default": 15000
+        },
+        "maxRetries": {
+          "type": "integer",
+          "description": "Max consecutive retries before giving up (0 = unlimited).",
+          "minimum": 0,
+          "default": 0
+        }
+      }
+    },
+
+    "timeouts": {
+      "type": "object",
+      "description": "Operation timeouts (enforced by application).",
+      "additionalProperties": false,
+      "properties": {
+        "connectTimeoutSec": {
+          "type": "integer",
+          "description": "Time limit for connect handshake (seconds).",
+          "minimum": 1,
+          "maximum": 120,
+          "default": 15
+        },
+        "commandTimeoutSec": {
+          "type": "integer",
+          "description": "Time limit for publish/subscribe commands (seconds), if applicable.",
+          "minimum": 1,
+          "maximum": 120,
+          "default": 10
+        }
+      }
+    },
+
+    "tls": {
+      "type": "object",
+      "description": "TLS/SSL settings. Enable for mqtts:// or wss://.",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Enable TLS (SSL).",
+          "default": false
+        },
+        "insecureSkipVerify": {
+          "type": "boolean",
+          "description": "Do not verify server certificate (NOT recommended for production).",
+          "default": false
+        },
+        "caCertPem": {
+          "type": "string",
+          "description": "CA certificate (PEM). Required unless insecureSkipVerify=true."
+        },
+        "clientCertPem": {
+          "type": "string",
+          "description": "Client certificate (PEM) for mutual TLS (optional)."
+        },
+        "clientKeyPem": {
+          "type": "string",
+          "description": "Client private key (PEM) for mutual TLS (required if clientCertPem set)."
+        },
+        "sni": {
+          "type": "boolean",
+          "description": "Send Server Name Indication using 'host' as TLS server name.",
+          "default": true
+        }
+      }
+    },
+
+    "websocket": {
+      "type": "object",
+      "description": "WebSocket options (used only when transport='ws').",
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "WebSocket path on the broker (e.g., '/mqtt').",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "headers": {
+          "type": "object",
+          "description": "Extra HTTP headers for the WS handshake.",
+          "additionalProperties": { "type": "string", "maxLength": 256 }
+        },
+        "query": {
+          "type": "object",
+          "description": "Optional query-string parameters appended to the WS path.",
+          "additionalProperties": { "type": "string", "maxLength": 256 }
+        }
+      }
     }
+  },
+
+  "required": ["enabled"],
+
+  "allOf": [
+    {
+      "if": { "properties": { "enabled": { "const": true } }, "required": ["enabled"] },
+      "then": { "required": ["host"] }
+    },
+
+    {
+      "if": { "properties": { "auth": { "properties": { "mode": { "const": "basic" } }, "required": ["mode"] } }, "required": ["auth"] },
+      "then": { "properties": { "auth": { "required": ["username", "password"] } } }
+    },
+
+    {
+      "if": { "properties": { "will": { "properties": { "enabled": { "const": true } }, "required": ["enabled"] } }, "required": ["will"] },
+      "then": { "properties": { "will": { "required": ["topic", "payload"] } } }
+    },
+
+    {
+      "if": { "properties": { "tls": { "properties": { "enabled": { "const": true } }, "required": ["enabled"] } }, "required": ["tls"] },
+      "then": {
+        "anyOf": [
+          { "properties": { "tls": { "properties": { "insecureSkipVerify": { "const": true } }, "required": ["insecureSkipVerify"] } } },
+          { "properties": { "tls": { "required": ["caCertPem"] } } }
+        ]
+      }
+    },
+    {
+      "if": { "properties": { "tls": { "properties": { "clientCertPem": { "type": "string" } }, "required": ["clientCertPem"] } }, "required": ["tls"] },
+      "then": { "properties": { "tls": { "required": ["clientKeyPem"] } } }
+    },
+
+    {
+      "if": { "properties": { "transport": { "const": "ws" } }, "required": ["transport"] },
+      "then": { "properties": { "port": { "default": 80 } } },
+      "else":  { "properties": { "port": { "default": 1883 } } }
+    },
+    {
+      "if": { "properties": { "tls": { "properties": { "enabled": { "const": true } }, "required": ["enabled"] } }, "required": ["tls"] },
+      "then": { "properties": { "port": { "default": 8883 } } }
+    },
+    {
+      "if": {
+        "properties": {
+          "transport": { "const": "ws" },
+          "tls": { "properties": { "enabled": { "const": true } }, "required": ["enabled"] }
+        },
+        "required": ["transport", "tls"]
+      },
+      "then": { "properties": { "port": { "default": 443 } } }
+    }
+  ]
 }

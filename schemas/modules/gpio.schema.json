@@ -1,0 +1,52 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "GPIO Configuration",
+    "description": "Minimal schema for GPIO configuration on ESP32.",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "enabled": {
+            "type": "boolean",
+            "description": "Enable or disable NTP synchronization.",
+            "default": true
+        },
+        "poll": {
+            "type": "object",
+            "description": "Polling configuration for input GPIO pins.",
+            "properties": {
+                "interval": {
+                    "type": "integer",
+                    "description": "Polling interval in milliseconds.",
+                    "minimum": 100,
+                    "default": 1000
+                },
+                "debounceMs": {
+                    "type": "integer",
+                    "description": "Debounce for digital inputs.",
+                    "minimum": 0,
+                    "default": 0
+                }
+            }
+        }
+    },
+    "definitions": {
+        "interface": {
+            "type": "object",
+            "properties": {
+                "pin": {
+                    "type": "integer",
+                    "description": "GPIO pin number.",
+                    "minimum": 0,
+                    "maximum": 39
+                },
+                "mode": {
+                    "type": "string",
+                    "description": "GPIO mode.",
+                    "enum": ["disable", "input", "output", "inputoutput"],
+                    "default": "input"
+                }
+            },
+            "required": ["pin", "mode"]
+        }
+    }
+}
