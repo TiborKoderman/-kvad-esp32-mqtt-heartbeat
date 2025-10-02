@@ -1,15 +1,10 @@
-#include <WiFi.h>
-#include <PubSubClient.h>
-#include <ArduinoJson.h>
-#include <esp_system.h>
-#include <esp_timer.h>
 #include <time.h>
-#include <ESPmDNS.h>
 #include "config.h"
-
+#include "main.hpp"
 // Global variables
-WiFiClient espClient;
-PubSubClient mqttClient(espClient);
+MqttModule mqttModule;
+
+
 unsigned long lastHeartbeat = 0;
 uint32_t sequenceNumber = 0;
 uint64_t bootId;
