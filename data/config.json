@@ -21,17 +21,11 @@
             "enabled": true,
             "transport": {
                 "mqtt": {
-                    "topic": "device/{deviceId}/heartbeat",
-                    "qos": 1,
-                    "retain": false
+                    "topic": "device/{uuid}/hb"
                 }
             },
             "intervalSec": 60,
-            "jitterSec": 10,
-            "payload": {
-                "location": "office",
-                "deviceType": "sensor"
-            }
+            "jitterSec": 10
         }
     }
 }

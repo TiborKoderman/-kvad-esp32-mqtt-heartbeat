@@ -95,6 +95,7 @@ void setupMQTT() {
     // Set MQTT buffer size to accommodate larger JSON payloads
     mqttClient.setBufferSize(1024);
     mqttClient.setServer(MQTT_BROKER, MQTT_PORT);
+    mqttClient.publish_P(mqttTopicString.c_str(), 0, true, ""); // Retain empty message to create topic
     
     Serial.printf("MQTT buffer size set to: %d bytes\n", 1024);
     reconnectMQTT();

@@ -26,6 +26,16 @@
                 "mqtt": ["wifi"]
             }
         },
+        "services": {
+            "type": "object",
+            "properties": {
+                "ntp": { "$ref": "services/ntp.schema.json" },
+                "heartbeat": { "$ref": "services/heartbeat.schema.json" },
+                "http": { "$ref": "services/http.schema.json" },
+                "ota": { "$ref": "services/ota.schema.json" }
+            },
+            "additionalProperties": false
+        },
         "tags": {
             "type": "object",
             "additionalProperties": { "$ref": "tag.schema.json" },
