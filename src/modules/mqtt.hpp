@@ -1,8 +1,9 @@
-#ifdef MQTT_MODULE
+#pragma once  
 
 #include <Arduino.h>
 extern "C" {
   #include "mqtt_client.h"
+#include <ArduinoJson/Object/JsonObjectConst.hpp>
 }
 
 
@@ -17,3 +18,5 @@ private:
     WiFiClient wifiClient;
     PubSubClient mqttClient;
 };
+
+

@@ -41,6 +41,7 @@ void setup() {
     setupNTP();
     setupMDNS();
     setupMQTT();
+
     
     Serial.println("=== Setup Complete ===\n");
 }
