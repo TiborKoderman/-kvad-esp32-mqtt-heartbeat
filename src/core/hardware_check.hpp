@@ -13,7 +13,9 @@
 
 namespace HardwareCheck {
 
+namespace {
 static const char* TAG = "HW_CHECK";
+}
 
 // Perform comprehensive hardware initialization and checks
 // Returns true if all critical systems are OK
@@ -66,33 +68,38 @@ bool performHardwareCheck(Ctx* ctx) {
   ctx->flash_ok = (ret == ESP_OK);
   ctx->flash_size = ctx->flash_ok ? flash_size : 0;
   if (ctx->flash_ok) {
-    ESP_LOGI(TAG, "✓ Flash: %lu MB", flash_size / (1024 * 1024));
+    ESP_LOGI(TAG, "✓ Flash: %u MB", (unsigned)(flash_size / (1024 * 1024)));
   } else {
     ESP_LOGE(TAG, "✗ Flash check failed: %s", esp_err_to_name(ret));
   }
   
   // 3. Check PSRAM (if available)
-  if (esp_psram_is_initialized()) {
-    ctx->psram_size = esp_psram_get_size();
-    ctx->psram_ok = (ctx->psram_size > 0);
-    if (ctx->psram_ok) {
-      ESP_LOGI(TAG, "✓ PSRAM: %lu MB", ctx->psram_size / (1024 * 1024));
-    }
+  #if CONFIG_SPIRAM_SUPPORT || CONFIG_SPIRAM
+  size_t psram_size = heap_caps_get_total_size(MALLOC_CAP_SPIRAM);
+  if (psram_size > 0) {
+    ctx->psram_size = psram_size;
+    ctx->psram_ok = true;
+    ESP_LOGI(TAG, "✓ PSRAM: %u MB", (unsigned)(ctx->psram_size / (1024 * 1024)));
   } else {
     ctx->psram_ok = true; // Not having PSRAM is OK
     ctx->psram_size = 0;
-    ESP_LOGI(TAG, "- PSRAM: Not available (OK)");
+    ESP_LOGW(TAG, "PSRAM: Not detected or not configured");
   }
+  #else
+  ctx->psram_ok = true; // Not having PSRAM is OK
+  ctx->psram_size = 0;
+  ESP_LOGW(TAG, "PSRAM: Support not compiled in");
+  #endif
   
   // 4. Check heap memory
   ctx->heap_size = heap_caps_get_total_size(MALLOC_CAP_DEFAULT);
   bool heap_ok = (ctx->heap_size > 100 * 1024); // At least 100KB
   if (heap_ok) {
-    ESP_LOGI(TAG, "✓ Heap: %lu KB free of %lu KB total", 
-             heap_caps_get_free_size(MALLOC_CAP_DEFAULT) / 1024,
-             ctx->heap_size / 1024);
+    ESP_LOGI(TAG, "✓ Heap: %u KB free of %u KB total", 
+             (unsigned)(heap_caps_get_free_size(MALLOC_CAP_DEFAULT) / 1024),
+             (unsigned)(ctx->heap_size / 1024));
   } else {
-    ESP_LOGE(TAG, "✗ Insufficient heap memory: %lu KB", ctx->heap_size / 1024);
+    ESP_LOGE(TAG, "✗ Insufficient heap memory: %u KB", (unsigned)(ctx->heap_size / 1024));
   }
   
   // 5. Check high-resolution timer
@@ -126,7 +133,7 @@ bool performHardwareCheck(Ctx* ctx) {
   // 7. Check WiFi hardware initialization
   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
   ret = esp_wifi_init(&cfg);
-  ctx->wifi_hw_ok = (ret == ESP_OK || ret == ESP_ERR_WIFI_ALREADY_INIT || ret == ESP_ERR_INVALID_STATE);
+  ctx->wifi_hw_ok = (ret == ESP_OK || ret == ESP_ERR_INVALID_STATE);
   if (ctx->wifi_hw_ok) {
     ESP_LOGI(TAG, "✓ WiFi hardware initialized");
     // Get MAC address as additional verification

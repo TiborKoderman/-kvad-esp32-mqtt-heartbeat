@@ -1,8 +1,9 @@
 #include "main.hpp"
 #include "ctx.hpp"
-#include "core/fsm/states/init.hpp"
+#include "fsm.hpp"
+#include "states.hpp"
 
-static const char* TAG = "LFS";
+static const char* TAG = "MAIN";
 
 extern "C" void app_main(void)
 {

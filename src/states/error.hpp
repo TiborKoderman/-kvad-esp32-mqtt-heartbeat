@@ -1,13 +1,15 @@
 #pragma once
 #include "ctx.hpp"
-#include "include/fsm.hpp"
+#include "fsm.hpp"
 #include "core/hw_diag.hpp"
 #include <esp_log.h>
 #include <esp_system.h>
 
 extern const StateDesc<Ctx> ST_INIT, ST_DEGRADED;
 
+namespace {
 static const char* TAG = "ERROR";
+}
 
 static void enter(Ctx* ctx) {
   ESP_LOGE(TAG, "🚨 SYSTEM ERROR STATE ENTERED 🚨");

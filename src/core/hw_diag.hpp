@@ -1,22 +1,25 @@
 #pragma once
 #include "ctx.hpp"
 #include <esp_log.h>
+#include <esp_system.h>
 #include "esp_heap_caps.h"
 
 // Hardware diagnostic utilities
 namespace HwDiag {
 
+namespace {
 static const char* TAG = "HWDIAG";
+}
 
 // Print detailed hardware information
 void printHardwareInfo(const Ctx* ctx) {
     ESP_LOGI(TAG, "=== Hardware Status ===");
     ESP_LOGI(TAG, "Chip: %s rev%d", ctx->chip_model, ctx->chip_revision);
-    ESP_LOGI(TAG, "Flash: %s (%lu MB)", ctx->flash_ok ? "✓" : "✗", ctx->flash_size / (1024 * 1024));
-    ESP_LOGI(TAG, "PSRAM: %s (%lu MB)", ctx->psram_ok ? "✓" : "✗", ctx->psram_size / (1024 * 1024));
-    ESP_LOGI(TAG, "Heap: %lu KB total, %lu KB free", 
-             ctx->heap_size / 1024,
-             heap_caps_get_free_size(MALLOC_CAP_DEFAULT) / 1024);
+    ESP_LOGI(TAG, "Flash: %s (%u MB)", ctx->flash_ok ? "✓" : "✗", (unsigned)(ctx->flash_size / (1024 * 1024)));
+    ESP_LOGI(TAG, "PSRAM: %s (%u MB)", ctx->psram_ok ? "✓" : "✗", (unsigned)(ctx->psram_size / (1024 * 1024)));
+    ESP_LOGI(TAG, "Heap: %u KB total, %u KB free", 
+             (unsigned)(ctx->heap_size / 1024),
+             (unsigned)(heap_caps_get_free_size(MALLOC_CAP_DEFAULT) / 1024));
     ESP_LOGI(TAG, "NVS: %s", ctx->nvs_ok ? "✓" : "✗");
     ESP_LOGI(TAG, "Timer: %s", ctx->timer_ok ? "✓" : "✗");
     ESP_LOGI(TAG, "GPIO: %s", ctx->gpio_ok ? "✓" : "✗");

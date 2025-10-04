@@ -1,12 +1,14 @@
 #pragma once
 #include "ctx.hpp"
-#include "include/fsm.hpp"
+#include "fsm.hpp"
 #include "core/hw_diag.hpp"
 #include <esp_log.h>
 
 extern const StateDesc<Ctx> ST_NOMINAL, ST_ERR;
 
+namespace {
 static const char* TAG = "DEGRADED";
+}
 
 static void enter(Ctx* ctx) {
   ESP_LOGW(TAG, "⚠️  DEGRADED MODE ENTERED");

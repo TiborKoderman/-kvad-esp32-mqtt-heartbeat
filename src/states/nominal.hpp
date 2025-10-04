@@ -1,12 +1,16 @@
 #pragma once
 #include "ctx.hpp"
-#include "include/fsm.hpp"
+#include "fsm.hpp"
 #include "core/hw_diag.hpp"
 #include <esp_log.h>
+#include <esp_system.h>
+#include <esp_timer.h>
 
 extern const StateDesc<Ctx> ST_DEGRADED, ST_ERR;
 
+namespace {
 static const char* TAG = "NOMINAL";
+}
 
 static void enter(Ctx* ctx) {
   ESP_LOGI(TAG, "🚀 NOMINAL OPERATION MODE");
@@ -23,8 +27,8 @@ static void enter(Ctx* ctx) {
   ESP_LOGI(TAG, "✓ Real-time monitoring");
   
   if (HwDiag::hasPSRAM(ctx)) {
-    ESP_LOGI(TAG, "✓ Extended memory available (%lu MB PSRAM)", 
-             ctx->psram_size / (1024 * 1024));
+    ESP_LOGI(TAG, "✓ Extended memory available (%u MB PSRAM)", 
+             (unsigned)(ctx->psram_size / (1024 * 1024)));
   }
   
   ESP_LOGI(TAG, "System ready for production operation");
@@ -44,7 +48,7 @@ static void tick(Ctx* ctx, uint32_t now_ms) {
     
     // Log memory status
     uint32_t free_kb = esp_get_free_heap_size() / 1024;
-    ESP_LOGI(TAG, "Free memory: %lu KB", free_kb);
+    ESP_LOGI(TAG, "Free memory: %u KB", (unsigned)free_kb);
     
     last_health_check = now_ms;
   }
