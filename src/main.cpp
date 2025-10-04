@@ -1,12 +1,12 @@
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "esp_event.h"
-#include "esp_log.h"
-#include "nvs_flash.h"
-#include "esp_wifi.h"
-#include "esp_netif.h"
+#include "main.hpp"
+#include "ctx.hpp"
+#include "core/fsm/states/init.hpp"
 
-extern "C" void main(void)
+static const char* TAG = "LFS";
+
+extern "C" void app_main(void)
 {
-    ESP_ERROR_CHECK(nvs_flash_init());
+    Ctx ctx{};
+    Fsm<Ctx> fsm(&ctx, &ST_INIT);
+    fsm.start();
 }

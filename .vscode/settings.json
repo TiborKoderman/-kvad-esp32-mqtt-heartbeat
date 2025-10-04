@@ -5,5 +5,13 @@
       "url": "./schemas/config.schema.json",
       "description": "Schema for project config.json (wifi, mqtt, device)"
     }
-  ]
+  ],
+  "files.associations": {
+    "*.s": "arm",
+    "*.rmd": "markdown",
+    "*.rpy": "renpy",
+    "*.h": "c",
+    "*.vue": "vue",
+    "iostream": "cpp"
+  }
 }
