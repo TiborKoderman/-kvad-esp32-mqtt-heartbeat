@@ -12,7 +12,9 @@
     "*.rpy": "renpy",
     "*.h": "c",
     "*.vue": "vue",
-    "iostream": "cpp"
+    "iostream": "cpp",
+    "algorithm": "cpp",
+    "memory": "cpp"
   },
   "C_Cpp.default.compileCommands": "${workspaceFolder}/compile_commands.json",
   "C_Cpp.default.configurationProvider": "ms-vscode.cpptools"

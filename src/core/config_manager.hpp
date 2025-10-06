@@ -1,6 +1,6 @@
 #pragma once
 #include <esp_vfs.h>
-#include <esp_spiffs.h>
+#include "esp_littlefs.h"
 #include <esp_log.h>
 #include <ArduinoJson.h>
 #include <memory>
@@ -14,27 +14,26 @@ private:
   static constexpr const char* TAG = "ConfigManager";
   
 public:
-  bool init(const char *jsonPath = "/spiffs/config.json", const char *mpkPath = "/spiffs/config.mpk", size_t jsonPoolCapacity = 0)
+  bool init(const char *jsonPath = "/config.json", const char *mpkPath = "/config.mpk", size_t jsonPoolCapacity = 0)
   {
     _jsonPath = jsonPath;
     _mpkPath = mpkPath;
-    
-    // Initialize SPIFFS
-    esp_vfs_spiffs_conf_t conf = {
-      .base_path = "/spiffs",
-      .partition_label = NULL,
-      .max_files = 5,
+
+    // Initialize LittleFS
+    esp_vfs_littlefs_conf_t conf = {
+      .base_path = "/",
+      .partition_label = "littlefs",
       .format_if_mount_failed = true
     };
-    
-    esp_err_t ret = esp_vfs_spiffs_register(&conf);
+
+    esp_err_t ret = esp_vfs_littlefs_register(&conf);
     if (ret != ESP_OK) {
       if (ret == ESP_FAIL) {
         ESP_LOGE(TAG, "Failed to mount or format filesystem");
       } else if (ret == ESP_ERR_NOT_FOUND) {
-        ESP_LOGE(TAG, "Failed to find SPIFFS partition");
+        ESP_LOGE(TAG, "Failed to find LittleFS partition");
       } else {
-        ESP_LOGE(TAG, "Failed to initialize SPIFFS (%s)", esp_err_to_name(ret));
+        ESP_LOGE(TAG, "Failed to initialize LittleFS (%s)", esp_err_to_name(ret));
       }
       return false;
     }
@@ -289,6 +288,6 @@ private:
 
 private:
   std::unique_ptr<DynamicJsonDocument> _doc;
-  const char *_jsonPath = "/spiffs/config.json";
-  const char *_mpkPath = "/spiffs/config.msgpack";
+  const char *_jsonPath = "/config.json";
+  const char *_mpkPath = "/config.msgpack";
 };

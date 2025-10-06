@@ -14,7 +14,7 @@ extern "C" void app_main(void)
 
     // Initialize ConfigManager and load configuration
     ConfigManager configManager;
-    if (!configManager.init("/spiffs/config.json", "/spiffs/config.msgpack")) {
+    if (!configManager.init("/config.json", "/config.msgpack")) {
         ESP_LOGE(TAG, "ConfigManager initialization failed");
         return;
     }
