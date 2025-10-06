@@ -16,8 +16,9 @@ struct StateDesc {
 template<class Ctx>
 class Fsm {
 public:
-  Fsm(Ctx* ctx, const StateDesc<Ctx>* init) : ctx_(ctx), cur_(init) {}
-  void start(){ if (cur_->onEnter) cur_->onEnter(ctx_); }
+  Fsm(Ctx* ctx, const StateDesc<Ctx>* init) : ctx_(ctx), cur_(init) {
+    if (cur_->onEnter) cur_->onEnter(ctx_);
+  }
   void tick(uint32_t now){
     if (cur_->onTick) cur_->onTick(ctx_, now);
     auto* nx = cur_->next ? cur_->next(ctx_) : cur_;
