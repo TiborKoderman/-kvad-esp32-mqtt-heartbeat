@@ -1,5 +1,4 @@
-#ifndef WIFI_MANAGER_HPP
-#define WIFI_MANAGER_HPP
+#pragma once
 
 #include <string>
 #include <cstring>
@@ -250,5 +249,3 @@ private:
      */
     void handleAPStop();
 };
-
-#endif // WIFI_MANAGER_HPP
