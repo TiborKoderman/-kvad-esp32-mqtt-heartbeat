@@ -44,5 +44,8 @@
     "--background-index",
     "--query-driver=**",
     "--compile-commands-dir=/home/tibor/Repos/esp32-mqtt-heartbeat/build"
-  ]
+  ],
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }
