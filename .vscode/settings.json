@@ -17,5 +17,13 @@
     "memory": "cpp"
   },
   "C_Cpp.default.compileCommands": "${workspaceFolder}/compile_commands.json",
-  "C_Cpp.default.configurationProvider": "ms-vscode.cpptools"
+  "C_Cpp.default.configurationProvider": "ms-vscode.cpptools",
+  "files.exclude": {
+    "**/*.rpyc": true,
+    "**/*.rpa": true,
+    "**/*.rpymc": true,
+    "**/cache/": true
+  },
+  "idf.flashType": "JTAG",
+  "idf.enableIdfComponentManager": true
 }
