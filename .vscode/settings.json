@@ -1,7 +1,10 @@
 {
   "json.schemas": [
     {
-      "fileMatch": ["/data/config.json", "data/config.json"],
+      "fileMatch": [
+        "/data/config.json",
+        "data/config.json"
+      ],
       "url": "./schemas/config.schema.json",
       "description": "Schema for project config.json (wifi, mqtt, device)"
     }
@@ -24,6 +27,22 @@
     "**/*.rpymc": true,
     "**/cache/": true
   },
-  "idf.flashType": "JTAG",
-  "idf.enableIdfComponentManager": true
+  "idf.flashType": "UART",
+  "idf.enableIdfComponentManager": true,
+  "idf.espIdfPath": "/home/tibor/esp/v5.5.3/esp-idf",
+  "idf.toolsPath": "/home/tibor/esp/tools",
+  "idf.pythonInstallPath": "/usr/bin/python",
+  "idf.openOcdConfigs": [
+    "board/esp32s3-builtin.cfg"
+  ],
+  "idf.customExtraVars": {
+    "ADF_PATH": "/home/tibor/Repos",
+    "IDF_TARGET": "esp32s3"
+  },
+  "clangd.path": "/home/tibor/esp/tools/tools/esp-clang/esp-19.1.2_20250312/esp-clang/bin/clangd",
+  "clangd.arguments": [
+    "--background-index",
+    "--query-driver=**",
+    "--compile-commands-dir=/home/tibor/Repos/esp32-mqtt-heartbeat/build"
+  ]
 }

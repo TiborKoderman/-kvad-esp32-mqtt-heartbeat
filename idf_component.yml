@@ -1,0 +1,8 @@
+dependencies:
+  espressif/esp-modbus: ^2.1.2
+  joltwallet/littlefs: ^1.20.4
+  lvgl/lvgl: ^9.5.0
+  espressif/mdns: ^1.10.0
+  espressif/esp-dsp: ^1.7.0
+  espressif/esp_secure_cert_mgr: ^2.9.0
+  espressif/json_generator: ^1.2.0
